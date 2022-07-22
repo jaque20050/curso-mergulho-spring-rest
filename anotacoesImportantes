@@ -1,0 +1,19 @@
+================ Modelo para tratar Requisição ===========
+
+ 					//Exemplo 2\\
+	@GetMapping("/{clienteId}")
+	public ResponseEntity<Cliente> buscar(@PathVariable Long clienteId) {
+		return clienteRepository.findById(clienteId)
+				.map(cliente -> ResponseEntity.ok(cliente))
+				.orElse(ResponseEntity.notFound().build());
+	}
+
+
+				//Primeiro Exemplo de retorno\\
+		Optional<Cliente> cliente = clienteRepository.findById(clienteId);
+
+		if (cliente.isPresent()) {
+			return ResponseEntity.ok(cliente.get());
+		}
+		return ResponseEntity.notFound().build();
+	}
