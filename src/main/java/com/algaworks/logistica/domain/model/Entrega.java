@@ -1,7 +1,7 @@
 package com.algaworks.logistica.domain.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -54,8 +54,8 @@ public class Entrega {
 	private StatusEntrega status;
 
 	@JsonProperty(access = Access.READ_ONLY)
-	private LocalDateTime dataPedido;
+	private OffsetDateTime dataPedido;
 
 	@JsonProperty(access = Access.READ_ONLY)
-	private LocalDateTime dataFinalizada;
+	private OffsetDateTime dataFinalizada;
 }
