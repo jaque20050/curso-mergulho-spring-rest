@@ -14,11 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.algaworks.logistica.api.model.DestinatarioModel;
+import com.algaworks.logistica.api.assembler.EntregaAssembler;
 import com.algaworks.logistica.api.model.EntregaModel;
 import com.algaworks.logistica.domain.model.Entrega;
 import com.algaworks.logistica.domain.repository.EntregaRepository;
 import com.algaworks.logistica.domain.service.SolicitacaoEntregaService;
+import com.algaworks.logistica.model.input.EntregaInput;
 
 import lombok.AllArgsConstructor;
 
@@ -26,43 +27,32 @@ import lombok.AllArgsConstructor;
 @RestController
 @RequestMapping("/entregas")
 public class EntregaController {
-	
+
 	private EntregaRepository entregaRepository;
 
 	private SolicitacaoEntregaService solicitacaoEntregaService;
 
+	private EntregaAssembler entregaAssembler;
+
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Entrega solicitar(@Valid @RequestBody Entrega entrega) {
-		return solicitacaoEntregaService.solicitar(entrega);
+	public EntregaModel solicitar(@Valid @RequestBody EntregaInput entregaInput) {
+		Entrega novaEntrega = entregaAssembler.toEntity(entregaInput);
+		Entrega entregaSolicitada = solicitacaoEntregaService.solicitar(novaEntrega);
+
+		return entregaAssembler.toModel(entregaSolicitada);
 	}
-	
+
 	@GetMapping
-	public List<Entrega> listar(){
-		return entregaRepository.findAll();
+	public List<EntregaModel> listar() {
+		return entregaAssembler.toCollectionModel(entregaRepository.findAll());
 	}
-	
+
 	@GetMapping("/{entregaId}")
-	public ResponseEntity<EntregaModel> buscar(@PathVariable Long entregaId){
+	public ResponseEntity<EntregaModel> buscar(@PathVariable Long entregaId) {
 		return entregaRepository.findById(entregaId)
-				.map(entrega ->{
-					EntregaModel entregaModel = new EntregaModel();
-					entregaModel.setId(entrega.getId());
-					entregaModel.setNomeCliente(entrega.getCliente().getNome());
-					entregaModel.setDestinatario(new DestinatarioModel());
-					entregaModel.getDestinatario().setNome(entrega.getDestinatario().getNome());
-					entregaModel.getDestinatario().setLogradouro(entrega.getDestinatario().getLogradouro());
-					entregaModel.getDestinatario().setNumero(entrega.getDestinatario().getNumero());
-					entregaModel.getDestinatario().setComplemento(entrega.getDestinatario().getComplemento());
-					entregaModel.getDestinatario().setBairro(entrega.getDestinatario().getBairro());
-					entregaModel.setTaxa(entrega.getTaxa());
-					entregaModel.setStatus(entrega.getStatus());
-					entregaModel.setDataPedido(entrega.getDataPedido());
-					entregaModel.setDataFinalizada(entrega.getDataFinalizada());
-
-
-					return ResponseEntity.ok(entregaModel);
-				}).orElse(ResponseEntity.notFound().build());
+				.map(entrega -> ResponseEntity.ok(entregaAssembler.toModel(entrega)))
+				.orElse(ResponseEntity.notFound().build());
 	}
 
 }
